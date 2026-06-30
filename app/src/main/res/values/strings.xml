@@ -112,6 +112,7 @@
     <string name="goals_title">Goals</string>
     <string name="goals_subtitle">Weekly distance targets.</string>
     <string name="target_km">Target km</string>
+    <string name="goal_target_error">Enter a number &gt;= 0</string>
 
     <string name="settings_title">Settings</string>
     <string name="settings_subtitle">Local user preferences.</string>

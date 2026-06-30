@@ -112,6 +112,7 @@
     <string name="goals_title">Obiettivi</string>
     <string name="goals_subtitle">Obiettivi settimanali di distanza.</string>
     <string name="target_km">Obiettivo km</string>
+    <string name="goal_target_error">Inserisci un numero &gt;= 0</string>
 
     <string name="settings_title">Impostazioni</string>
     <string name="settings_subtitle">Preferenze utente locali.</string>
