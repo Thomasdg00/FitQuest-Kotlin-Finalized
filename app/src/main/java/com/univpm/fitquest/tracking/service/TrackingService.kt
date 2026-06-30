@@ -514,7 +514,9 @@ class TrackingService : Service(), SensorEventListener {
             }
             weatherResult.onSuccess { weather ->
                 weatherSnapshotDraft = weather
-                currentState = currentState.copy(weatherStatus = WeatherCaptureStatus.Saved)
+                currentState = currentState.copy(
+                    weatherStatus = if (weather != null) WeatherCaptureStatus.Saved else WeatherCaptureStatus.Failed,
+                )
                 publishState(updateNotification = false)
             }.onFailure {
                 // Weather is useful context, not required data. Failed requests leave the workout saveable.
