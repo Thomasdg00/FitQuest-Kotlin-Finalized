@@ -5,29 +5,25 @@ import androidx.room.RoomDatabase
 import com.univpm.fitquest.data.local.dao.GoalDao
 import com.univpm.fitquest.data.local.dao.RoutePointDao
 import com.univpm.fitquest.data.local.dao.UserSettingsDao
-import com.univpm.fitquest.data.local.dao.WeatherSnapshotDao
 import com.univpm.fitquest.data.local.dao.WorkoutDao
 import com.univpm.fitquest.data.local.entity.GoalEntity
 import com.univpm.fitquest.data.local.entity.RoutePointEntity
 import com.univpm.fitquest.data.local.entity.UserSettingsEntity
-import com.univpm.fitquest.data.local.entity.WeatherSnapshotEntity
 import com.univpm.fitquest.data.local.entity.WorkoutEntity
 
 @Database(
     entities = [
         WorkoutEntity::class,
         RoutePointEntity::class,
-        WeatherSnapshotEntity::class,
         GoalEntity::class,
         UserSettingsEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 abstract class FitQuestDatabase : RoomDatabase() {
     abstract fun workoutDao(): WorkoutDao
     abstract fun routePointDao(): RoutePointDao
-    abstract fun weatherSnapshotDao(): WeatherSnapshotDao
     abstract fun goalDao(): GoalDao
     abstract fun userSettingsDao(): UserSettingsDao
 
