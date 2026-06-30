@@ -97,7 +97,7 @@ fun FitQuestNavHost(appContainer: AppContainer) {
                     factory = HomeViewModel.Factory(
                         workoutRepository = appContainer.workoutRepository,
                         goalRepository = appContainer.goalRepository,
-                        openMeteoClient = appContainer.openMeteoClient,
+                        weatherRepository = appContainer.weatherRepository,
                         fusedLocationClient = appContainer.fusedLocationClient,
                         context = appContainer.context,
                     )

@@ -11,6 +11,8 @@ ksp = "2.3.7"
 playServicesLocation = "21.3.0"
 playServicesMaps = "20.0.0"
 mapsCompose = "8.3.0"
+retrofit = "2.11.0"
+moshi = "1.15.1"
 junit = "4.13.2"
 junitVersion = "1.1.5"
 
@@ -35,6 +37,9 @@ androidx-room-runtime = { group = "androidx.room", name = "room-runtime", versio
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 play-services-maps = { group = "com.google.android.gms", name = "play-services-maps", version.ref = "playServicesMaps" }
 google-maps-compose = { group = "com.google.maps.android", name = "maps-compose", version.ref = "mapsCompose" }
+retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
+retrofit-converter-moshi = { group = "com.squareup.retrofit2", name = "converter-moshi", version.ref = "retrofit" }
+moshi-kotlin = { group = "com.squareup.moshi", name = "moshi-kotlin", version.ref = "moshi" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 

@@ -5,10 +5,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.univpm.fitquest.data.local.entity.RoutePointEntity
 import com.univpm.fitquest.data.local.entity.WorkoutEntity
-import com.univpm.fitquest.data.remote.DailyForecast
-import com.univpm.fitquest.data.remote.OpenMeteoClient
 import com.univpm.fitquest.data.repository.GoalRepository
+import com.univpm.fitquest.data.repository.WeatherRepository
 import com.univpm.fitquest.data.repository.WorkoutRepository
+import com.univpm.fitquest.domain.model.DailyForecast
 import com.univpm.fitquest.domain.model.Sport
 import com.google.android.gms.location.FusedLocationProviderClient
 import android.annotation.SuppressLint
@@ -41,7 +41,7 @@ data class HomeUiState(
 class HomeViewModel(
     private val workoutRepository: WorkoutRepository,
     private val goalRepository: GoalRepository,
-    private val openMeteoClient: OpenMeteoClient,
+    private val weatherRepository: WeatherRepository,
     private val fusedLocationClient: FusedLocationProviderClient,
     private val context: Context,
 ) : ViewModel() {
@@ -98,7 +98,7 @@ class HomeViewModel(
                 if (location != null) {
                     launch(Dispatchers.IO) {
                         val forecast = runCatching {
-                            openMeteoClient.fetchDailyForecast(location.latitude, location.longitude)
+                            weatherRepository.fetchDailyForecast(location.latitude, location.longitude)
                         }.getOrDefault(emptyList())
                         val locName = runCatching {
                             val address = Geocoder(context, java.util.Locale.getDefault())
@@ -123,13 +123,13 @@ class HomeViewModel(
     class Factory(
         private val workoutRepository: WorkoutRepository,
         private val goalRepository: GoalRepository,
-        private val openMeteoClient: OpenMeteoClient,
+        private val weatherRepository: WeatherRepository,
         private val fusedLocationClient: FusedLocationProviderClient,
         private val context: Context,
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return HomeViewModel(workoutRepository, goalRepository, openMeteoClient, fusedLocationClient, context) as T
+            return HomeViewModel(workoutRepository, goalRepository, weatherRepository, fusedLocationClient, context) as T
         }
     }
 }

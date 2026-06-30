@@ -50,7 +50,7 @@ import androidx.compose.ui.unit.sp
 import com.univpm.fitquest.R
 import com.univpm.fitquest.data.local.entity.RoutePointEntity
 import com.univpm.fitquest.data.local.entity.WorkoutEntity
-import com.univpm.fitquest.data.remote.DailyForecast
+import com.univpm.fitquest.domain.model.DailyForecast
 import com.univpm.fitquest.domain.model.Sport
 import com.univpm.fitquest.ui.resources.weatherCodeToLabelRes
 import com.univpm.fitquest.ui.resources.localizedName

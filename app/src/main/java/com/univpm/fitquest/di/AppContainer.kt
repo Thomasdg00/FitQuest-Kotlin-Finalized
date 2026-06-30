@@ -2,14 +2,19 @@ package com.univpm.fitquest.di
 
 import android.content.Context
 import androidx.room.Room
-import com.univpm.fitquest.data.local.database.FitQuestDatabase
-import com.univpm.fitquest.data.remote.OpenMeteoClient
-import com.univpm.fitquest.data.repository.GoalRepository
-import com.univpm.fitquest.data.repository.UserSettingsRepository
-import com.univpm.fitquest.data.repository.WorkoutRepository
-import com.univpm.fitquest.tracking.location.FusedPreviewLocationProvider
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
+import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
+import com.univpm.fitquest.data.local.database.FitQuestDatabase
+import com.univpm.fitquest.data.remote.OpenMeteoApi
+import com.univpm.fitquest.data.repository.GoalRepository
+import com.univpm.fitquest.data.repository.UserSettingsRepository
+import com.univpm.fitquest.data.repository.WeatherRepository
+import com.univpm.fitquest.data.repository.WorkoutRepository
+import com.univpm.fitquest.tracking.location.FusedPreviewLocationProvider
+import retrofit2.Retrofit
+import retrofit2.converter.moshi.MoshiConverterFactory
 
 class AppContainer(val context: Context) {
     private val database: FitQuestDatabase by lazy {
@@ -39,8 +44,22 @@ class AppContainer(val context: Context) {
         UserSettingsRepository(database.userSettingsDao())
     }
 
-    val openMeteoClient: OpenMeteoClient by lazy {
-        OpenMeteoClient()
+    private val moshi: Moshi by lazy {
+        Moshi.Builder()
+            .add(KotlinJsonAdapterFactory())
+            .build()
+    }
+
+    private val openMeteoApi: OpenMeteoApi by lazy {
+        Retrofit.Builder()
+            .baseUrl(OPEN_METEO_BASE_URL)
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .build()
+            .create(OpenMeteoApi::class.java)
+    }
+
+    val weatherRepository: WeatherRepository by lazy {
+        WeatherRepository(openMeteoApi)
     }
 
     val fusedLocationClient: FusedLocationProviderClient by lazy {
@@ -53,5 +72,6 @@ class AppContainer(val context: Context) {
 
     companion object {
         private const val DATABASE_NAME = "fitquest.db"
+        private const val OPEN_METEO_BASE_URL = "https://api.open-meteo.com/"
     }
 }

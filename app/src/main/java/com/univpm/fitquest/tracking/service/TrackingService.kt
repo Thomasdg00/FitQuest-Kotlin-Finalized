@@ -30,8 +30,8 @@ import com.google.android.gms.tasks.CancellationTokenSource
 import com.univpm.fitquest.FitQuestApplication
 import com.univpm.fitquest.R
 import com.univpm.fitquest.data.local.entity.WeatherSnapshotEntity
-import com.univpm.fitquest.data.remote.WeatherSnapshotDraft
 import com.univpm.fitquest.domain.model.Sport
+import com.univpm.fitquest.domain.model.WeatherSnapshotDraft
 import com.univpm.fitquest.tracking.calories.CalorieProfile
 import com.univpm.fitquest.tracking.calories.MetCalorieCalculator
 import com.univpm.fitquest.tracking.calories.Sex
@@ -57,8 +57,8 @@ class TrackingService : Service(), SensorEventListener {
     private val userSettingsRepository by lazy {
         appContainer.userSettingsRepository
     }
-    private val openMeteoClient by lazy {
-        appContainer.openMeteoClient
+    private val weatherRepository by lazy {
+        appContainer.weatherRepository
     }
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(serviceJob + Dispatchers.Main.immediate)
@@ -510,7 +510,7 @@ class TrackingService : Service(), SensorEventListener {
 
         serviceScope.launch {
             val weatherResult = runCatching {
-                openMeteoClient.fetchCurrentWeather(latitude, longitude)
+                weatherRepository.fetchCurrentWeather(latitude, longitude)
             }
             weatherResult.onSuccess { weather ->
                 weatherSnapshotDraft = weather

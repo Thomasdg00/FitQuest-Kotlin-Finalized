@@ -89,6 +89,9 @@ dependencies {
     implementation(libs.play.services.maps)
     implementation(libs.google.maps.compose)
     implementation(libs.play.services.location)
+    implementation(libs.retrofit)
+    implementation(libs.retrofit.converter.moshi)
+    implementation(libs.moshi.kotlin)
 
     ksp(libs.androidx.room.compiler)
 
