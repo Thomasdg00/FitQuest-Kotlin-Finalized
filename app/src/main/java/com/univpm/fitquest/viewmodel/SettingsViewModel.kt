@@ -1,0 +1,160 @@
+package com.univpm.fitquest.viewmodel
+
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
+import com.univpm.fitquest.data.local.entity.GoalEntity
+import com.univpm.fitquest.data.local.entity.UserSettingsEntity
+import com.univpm.fitquest.data.repository.GoalRepository
+import com.univpm.fitquest.data.repository.UserSettingsRepository
+import com.univpm.fitquest.domain.model.AppLanguage
+import com.univpm.fitquest.domain.model.Sport
+import com.univpm.fitquest.domain.model.ThemeMode
+import com.univpm.fitquest.tracking.calories.Sex
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+
+data class SettingsUiState(
+    val name: String = "",
+    val surname: String = "",
+    val heightCm: Int = 0,
+    val bodyWeightKg: Double = 70.0,
+    val ageYears: Int = 0,
+    val sex: Sex? = null,
+    val useMetricUnits: Boolean = true,
+    val appLanguage: AppLanguage = AppLanguage.English,
+    val themeMode: ThemeMode = ThemeMode.System,
+    val weeklyGoalKmBySport: Map<Sport, Double> = Sport.entries.associateWith {
+        metersToKm(defaultWeeklyGoalMeters(it))
+    },
+)
+
+class SettingsViewModel(
+    private val userSettingsRepository: UserSettingsRepository,
+    private val goalRepository: GoalRepository,
+) : ViewModel() {
+    val uiState: StateFlow<SettingsUiState> = combine(
+        userSettingsRepository.observeSettings(),
+        goalRepository.observeGoals(),
+    ) { settings, goals ->
+            val resolved = settings ?: UserSettingsEntity()
+            SettingsUiState(
+                name = resolved.name,
+                surname = resolved.surname,
+                heightCm = resolved.heightCm,
+                bodyWeightKg = resolved.bodyWeightKg,
+                ageYears = resolved.ageYears,
+                sex = Sex.fromStorageValue(resolved.sex),
+                useMetricUnits = resolved.useMetricUnits,
+                appLanguage = AppLanguage.fromCode(resolved.languageCode),
+                themeMode = ThemeMode.fromStorageValue(resolved.themeMode),
+                weeklyGoalKmBySport = Sport.entries.associateWith { sport ->
+                    val goal = goals.firstOrNull { it.sport == sport.routeValue }
+                    metersToKm(goal?.weeklyDistanceGoalMeters ?: defaultWeeklyGoalMeters(sport))
+                },
+            )
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = SettingsUiState()
+        )
+
+    init {
+        viewModelScope.launch {
+            if (userSettingsRepository.getSettingsOrNull() == null) {
+                userSettingsRepository.saveSettings(UserSettingsEntity())
+            }
+            Sport.entries.forEach { sport ->
+                if (goalRepository.getGoalForSport(sport.routeValue) == null) {
+                    goalRepository.saveGoal(
+                        GoalEntity(
+                            sport = sport.routeValue,
+                            weeklyDistanceGoalMeters = defaultWeeklyGoalMeters(sport),
+                            updatedAtMillis = System.currentTimeMillis(),
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    fun saveBodyWeightKg(weightKg: Double) {
+        viewModelScope.launch {
+            val current = userSettingsRepository.getSettings()
+            userSettingsRepository.saveSettings(
+                current.copy(bodyWeightKg = weightKg.coerceIn(20.0, 300.0))
+            )
+        }
+    }
+
+    fun saveProfile(
+        name: String,
+        surname: String,
+        heightCm: Int,
+        weightKg: Double,
+        ageYears: Int,
+        sex: Sex?,
+    ) {
+        viewModelScope.launch {
+            val current = userSettingsRepository.getSettings()
+            userSettingsRepository.saveSettings(
+                current.copy(
+                    name = name.trim(),
+                    surname = surname.trim(),
+                    heightCm = heightCm.coerceIn(0, 260),
+                    bodyWeightKg = weightKg.coerceIn(20.0, 300.0),
+                    ageYears = ageYears.coerceIn(0, 120),
+                    sex = sex?.storageValue.orEmpty(),
+                )
+            )
+        }
+    }
+
+    fun saveLanguageCode(languageCode: String) {
+        viewModelScope.launch {
+            val current = userSettingsRepository.getSettings()
+            userSettingsRepository.saveSettings(
+                current.copy(languageCode = AppLanguage.fromCode(languageCode).code)
+            )
+        }
+    }
+
+    fun saveThemeMode(themeMode: ThemeMode) {
+        viewModelScope.launch {
+            val current = userSettingsRepository.getSettings()
+            userSettingsRepository.saveSettings(
+                current.copy(themeMode = themeMode.storageValue)
+            )
+        }
+    }
+
+    fun saveWeeklyGoals(goalKmBySport: Map<Sport, Double>) {
+        viewModelScope.launch {
+            goalKmBySport.forEach { (sport, targetKm) ->
+                val existing = goalRepository.getGoalForSport(sport.routeValue)
+                goalRepository.saveGoal(
+                    GoalEntity(
+                        id = existing?.id ?: 0,
+                        sport = sport.routeValue,
+                        weeklyDistanceGoalMeters = kmToMeters(targetKm.coerceAtLeast(0.0)),
+                        updatedAtMillis = System.currentTimeMillis(),
+                    )
+                )
+            }
+        }
+    }
+
+    class Factory(
+        private val userSettingsRepository: UserSettingsRepository,
+        private val goalRepository: GoalRepository,
+    ) : ViewModelProvider.Factory {
+        @Suppress("UNCHECKED_CAST")
+        override fun <T : ViewModel> create(modelClass: Class<T>): T {
+            return SettingsViewModel(userSettingsRepository, goalRepository) as T
+        }
+    }
+}
