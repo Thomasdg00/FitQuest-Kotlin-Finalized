@@ -2,9 +2,7 @@ package com.univpm.fitquest.tracking.service
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.app.PendingIntent
 import android.app.Service
 import android.content.Context
 import android.content.Intent
@@ -18,7 +16,6 @@ import android.os.Build
 import android.os.IBinder
 import android.os.Looper
 import android.os.SystemClock
-import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
@@ -35,7 +32,6 @@ import com.univpm.fitquest.domain.model.WeatherSnapshotDraft
 import com.univpm.fitquest.tracking.calories.CalorieProfile
 import com.univpm.fitquest.tracking.calories.MetCalorieCalculator
 import com.univpm.fitquest.tracking.calories.Sex
-import com.univpm.fitquest.ui.resources.getSportName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -48,6 +44,9 @@ import kotlinx.coroutines.withContext
 class TrackingService : Service(), SensorEventListener {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var sensorManager: SensorManager
+    private val notificationHelper by lazy {
+        TrackingNotificationHelper(this)
+    }
     private val appContainer by lazy {
         (application as FitQuestApplication).appContainer
     }
@@ -90,7 +89,7 @@ class TrackingService : Service(), SensorEventListener {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         sensorManager = getSystemService(SensorManager::class.java)
         stepSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER)
-        createNotificationChannel()
+        notificationHelper.createChannel()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -142,7 +141,7 @@ class TrackingService : Service(), SensorEventListener {
         )
         TrackingServiceController.updateState(currentState)
         // Android requires a foreground service and ongoing notification for long-running location work.
-        startForeground(NOTIFICATION_ID, buildNotification(currentState))
+        startForeground(NOTIFICATION_ID, notificationHelper.buildNotification(currentState))
         loadCalorieProfile()
         startElapsedTicker()
         startSensorUpdates()
@@ -627,7 +626,7 @@ class TrackingService : Service(), SensorEventListener {
         TrackingServiceController.updateState(currentState)
         if (updateNotification && currentState.lifecycleState != TrackingLifecycleState.Idle) {
             val notificationManager = getSystemService(NotificationManager::class.java)
-            notificationManager.notify(NOTIFICATION_ID, buildNotification(currentState))
+            notificationManager.notify(NOTIFICATION_ID, notificationHelper.buildNotification(currentState))
         }
     }
 
@@ -652,54 +651,6 @@ class TrackingService : Service(), SensorEventListener {
             .setMinUpdateIntervalMillis(LOCATION_FASTEST_INTERVAL_MILLIS)
             .setMinUpdateDistanceMeters(MIN_DISTANCE_METERS)
             .build()
-    }
-
-    private fun buildNotification(state: TrackingServiceState) =
-        NotificationCompat.Builder(this, CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_menu_mylocation)
-            .setContentTitle(getString(R.string.notification_tracking_active))
-            .setContentText(notificationText(state))
-            .setOngoing(state.lifecycleState != TrackingLifecycleState.Idle)
-            .setOnlyAlertOnce(true)
-            .addAction(notificationAction(ACTION_PAUSE, getString(R.string.pause), REQUEST_PAUSE, android.R.drawable.ic_media_pause))
-            .addAction(notificationAction(ACTION_RESUME, getString(R.string.resume), REQUEST_RESUME, android.R.drawable.ic_media_play))
-            .addAction(notificationAction(ACTION_STOP, getString(R.string.stop), REQUEST_STOP, android.R.drawable.ic_menu_close_clear_cancel))
-            .build()
-
-    private fun notificationText(state: TrackingServiceState): String {
-        val sportText = state.sport?.let(::getSportName) ?: getString(R.string.notification_workout)
-        return when (state.lifecycleState) {
-            TrackingLifecycleState.Running -> getString(R.string.notification_sport_active, sportText)
-            TrackingLifecycleState.Paused -> getString(R.string.notification_sport_paused, sportText)
-            TrackingLifecycleState.Stopping -> getString(R.string.notification_sport_saving, sportText)
-            TrackingLifecycleState.Idle -> sportText
-        }
-    }
-
-    private fun notificationAction(
-        action: String,
-        title: String,
-        requestCode: Int,
-        icon: Int,
-    ): NotificationCompat.Action {
-        val intent = Intent(this, TrackingService::class.java).setAction(action)
-        val pendingIntent = PendingIntent.getService(
-            this,
-            requestCode,
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
-        )
-        return NotificationCompat.Action.Builder(icon, title, pendingIntent).build()
-    }
-
-    private fun createNotificationChannel() {
-        val channel = NotificationChannel(
-            CHANNEL_ID,
-            getString(R.string.notification_channel_tracking),
-            NotificationManager.IMPORTANCE_LOW,
-        )
-        val notificationManager = getSystemService(NotificationManager::class.java)
-        notificationManager.createNotificationChannel(channel)
     }
 
     private fun Context.hasPermission(permission: String): Boolean {
@@ -728,11 +679,7 @@ class TrackingService : Service(), SensorEventListener {
         const val ACTION_STOP = "com.univpm.fitquest.tracking.action.STOP"
         const val EXTRA_SPORT = "sport"
 
-        private const val CHANNEL_ID = "tracking"
         private const val NOTIFICATION_ID = 1001
-        private const val REQUEST_PAUSE = 2001
-        private const val REQUEST_RESUME = 2002
-        private const val REQUEST_STOP = 2003
         private const val LOCATION_INTERVAL_MILLIS = 5_000L
         private const val LOCATION_FASTEST_INTERVAL_MILLIS = 2_000L
         private const val MIN_DISTANCE_METERS = 3f
