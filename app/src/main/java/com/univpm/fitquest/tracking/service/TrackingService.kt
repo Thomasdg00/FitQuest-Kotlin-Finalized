@@ -26,7 +26,6 @@ import com.google.android.gms.location.Priority
 import com.google.android.gms.tasks.CancellationTokenSource
 import com.univpm.fitquest.FitQuestApplication
 import com.univpm.fitquest.R
-import com.univpm.fitquest.data.local.entity.WeatherSnapshotEntity
 import com.univpm.fitquest.domain.model.Sport
 import com.univpm.fitquest.domain.model.WeatherSnapshotDraft
 import com.univpm.fitquest.tracking.calories.CalorieProfile
@@ -52,6 +51,9 @@ class TrackingService : Service(), SensorEventListener {
     }
     private val workoutRepository by lazy {
         appContainer.workoutRepository
+    }
+    private val workoutSaveCoordinator by lazy {
+        WorkoutSaveCoordinator(workoutRepository)
     }
     private val userSettingsRepository by lazy {
         appContainer.userSettingsRepository
@@ -272,28 +274,22 @@ class TrackingService : Service(), SensorEventListener {
             return getString(R.string.tracking_error_too_short)
         }
 
+        val request = CompletedWorkoutSaveRequest(
+            sport = sport,
+            startedAtMillis = startedAtMillis,
+            endedAtMillis = endedAtMillis,
+            durationMillis = durationMillis,
+            distanceMeters = distanceMeters,
+            routeSnapshot = routeSnapshot,
+            caloriesKcal = caloriesKcal,
+            cadenceStepsPerMinute = cadenceStepsPerMinute,
+            elevationGainMeters = elevationGainMeters,
+            elevationLossMeters = elevationLossMeters,
+            weatherSnapshotDraft = weatherSnapshotDraft,
+        )
+
         return runCatching {
-            withContext(Dispatchers.IO) {
-                val workout = buildTrackedWorkoutEntity(
-                    sport = sport,
-                    startedAtMillis = startedAtMillis,
-                    endedAtMillis = endedAtMillis,
-                    durationMillis = durationMillis,
-                    distanceMeters = distanceMeters,
-                    caloriesKcal = caloriesKcal,
-                    elevationGainMeters = elevationGainMeters,
-                    elevationLossMeters = elevationLossMeters,
-                    averageCadenceStepsPerMinute = cadenceStepsPerMinute,
-                )
-                val workoutId = workoutRepository.addWorkout(workout)
-                val routeEntities = routeSnapshot.toRoutePointEntities(workoutId)
-                if (routeEntities.isNotEmpty()) {
-                    workoutRepository.addRoutePoints(routeEntities)
-                }
-                weatherSnapshotDraft?.let { weather ->
-                    workoutRepository.saveWeather(weather.toEntity(workoutId))
-                }
-            }
+            workoutSaveCoordinator.saveCompletedWorkout(request)
         }.exceptionOrNull()?.let { throwable ->
             getString(
                 R.string.tracking_error_save_failed,
@@ -651,16 +647,6 @@ class TrackingService : Service(), SensorEventListener {
         return this == Sport.Walking || this == Sport.Running
     }
 
-    private fun WeatherSnapshotDraft.toEntity(workoutId: Long): WeatherSnapshotEntity {
-        return WeatherSnapshotEntity(
-            workoutId = workoutId,
-            recordedAtMillis = recordedAtMillis,
-            temperatureCelsius = temperatureCelsius,
-            relativeHumidityPercent = relativeHumidityPercent,
-            windSpeedKmh = windSpeedKmh,
-            weatherCode = weatherCode,
-        )
-    }
 
     companion object {
         const val ACTION_START = "com.univpm.fitquest.tracking.action.START"
