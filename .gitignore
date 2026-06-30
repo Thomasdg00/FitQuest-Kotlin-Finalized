@@ -22,3 +22,5 @@ plugins/
 .codex.disabled/
 .codex/
 .agents/
+
+AGENTS.md
