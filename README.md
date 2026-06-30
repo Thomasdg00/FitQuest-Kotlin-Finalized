@@ -1,6 +1,6 @@
 # FitQuest
 
-FitQuest è un'applicazione Android nativa sviluppata per il tracciamento delle attività sportive, come camminata, corsa e ciclismo. L'app offre funzionalità di live tracking tramite GPS, registrazione dei percorsi su mappa interattiva, e raccolta di metriche avanzate quali altitudine, meteo al momento dell'allenamento e stima delle calorie bruciate. L'obiettivo principale è fornire un ecosistema completo e robusto per monitorare le proprie performance fisiche in modo efficiente e facilmente condivisibile.
+FitQuest è un'applicazione Android nativa sviluppata per il tracciamento delle attività sportive, come camminata, corsa e ciclismo. L'app offre funzionalità di live tracking tramite GPS, registrazione dei percorsi su mappa interattiva, e raccolta di metriche avanzate quali altitudine GPS e stima delle calorie bruciate. La schermata Home mostra le previsioni meteo giornaliere tramite OpenMeteo. L'obiettivo principale è fornire un ecosistema completo e robusto per monitorare le proprie performance fisiche in modo efficiente.
 
 ## Contesto Universitario
 
@@ -15,12 +15,12 @@ FitQuest è un'applicazione Android nativa sviluppata per il tracciamento delle 
 *   **Live Tracking:** Supporto per il tracciamento in tempo reale di camminata, corsa e ciclismo.
 *   **Mappe in Tempo Reale:** Visualizzazione della rotta e della posizione corrente tramite Google Maps SDK.
 *   **Background Tracking:** Tracciamento continuo in background gestito tramite un Foreground Service con notifica persistente.
-*   **Metriche Avanzate:** Integrazione con i sensori del dispositivo per la lettura dell'altitudine (barometro) e il conteggio dei passi (cadenza), ove disponibili.
+*   **Metriche Avanzate:** Rilevamento dell'altitudine tramite quota GPS (quando disponibile). Stima opzionale della cadenza gestita internamente al servizio di tracciamento.
 *   **Stima delle Calorie:** Calcolo delle calorie consumate basato sull'equivalente metabolico (MET).
-*   **Integrazione Meteo:** Acquisizione e salvataggio dei dati meteorologici all'inizio di ogni allenamento tramite le API di OpenMeteo.
+*   **Integrazione Meteo:** La schermata Home visualizza le previsioni meteo giornaliere tramite le API di OpenMeteo. I dati meteo non vengono salvati per singolo allenamento.
 *   **Obiettivi e Statistiche:** Impostazione di obiettivi settimanali (es. distanza) e visualizzazione di grafici riassuntivi.
 *   **Salvataggio Locale:** Persistenza dei dati (allenamenti, punti del percorso, impostazioni, obiettivi) tramite database Room.
-*   **Condivisione:** Generazione di un'immagine condivisibile dell'allenamento con percorso tracciato e statistiche principali.
+
 
 ## Stack Tecnologico
 
@@ -97,12 +97,10 @@ com.package.name
 │   ├── local/              # Room Database, DAO e Database Entity
 │   ├── remote/             # Client di rete e chiamate API (OpenMeteo)
 │   └── repository/         # Implementazioni dei repository
-├── domain/                 # Regole di business (Core logico)
-│   ├── model/              # Entità di dominio
-│   └── usecase/            # Casi d'uso isolati per funzionalità specifiche
+├── domain/                 # Modelli di dominio condivisi
+│   └── model/              # Entità di dominio
 └── tracking/               # Moduli per la cattura e calcolo dati background
     ├── service/            # Foreground Service
     ├── location/           # Gestione della geolocalizzazione
-    ├── sensors/            # Integrazione barometro e pedometro
     └── calories/           # Algoritmi calcolo metriche metaboliche
 ```
