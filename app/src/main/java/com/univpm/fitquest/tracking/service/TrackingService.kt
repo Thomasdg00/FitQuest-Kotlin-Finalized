@@ -56,8 +56,8 @@ class TrackingService : Service(), SensorEventListener {
     private val userSettingsRepository by lazy {
         appContainer.userSettingsRepository
     }
-    private val weatherRepository by lazy {
-        appContainer.weatherRepository
+    private val weatherCaptureHelper by lazy {
+        WeatherCaptureHelper(appContainer.weatherRepository)
     }
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(serviceJob + Dispatchers.Main.immediate)
@@ -508,20 +508,10 @@ class TrackingService : Service(), SensorEventListener {
         publishState(updateNotification = false)
 
         serviceScope.launch {
-            val weatherResult = runCatching {
-                weatherRepository.fetchCurrentWeather(latitude, longitude)
-            }
-            weatherResult.onSuccess { weather ->
-                weatherSnapshotDraft = weather
-                currentState = currentState.copy(
-                    weatherStatus = if (weather != null) WeatherCaptureStatus.Saved else WeatherCaptureStatus.Failed,
-                )
-                publishState(updateNotification = false)
-            }.onFailure {
-                // Weather is useful context, not required data. Failed requests leave the workout saveable.
-                currentState = currentState.copy(weatherStatus = WeatherCaptureStatus.Failed)
-                publishState(updateNotification = false)
-            }
+            val weatherResult = weatherCaptureHelper.captureCurrentWeather(latitude, longitude)
+            weatherSnapshotDraft = weatherResult.snapshotDraft
+            currentState = currentState.copy(weatherStatus = weatherResult.status)
+            publishState(updateNotification = false)
         }
     }
 
