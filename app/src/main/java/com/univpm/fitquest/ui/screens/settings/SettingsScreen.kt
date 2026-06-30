@@ -80,7 +80,11 @@ internal fun SettingsContent(
     var weightInput by remember { mutableStateOf("") }
     var ageInput by remember { mutableStateOf("") }
     var sexInput by remember { mutableStateOf<Sex?>(null) }
+    var heightError by remember { mutableStateOf<SettingsInputError?>(null) }
+    var weightError by remember { mutableStateOf<SettingsInputError?>(null) }
+    var ageError by remember { mutableStateOf<SettingsInputError?>(null) }
     val weeklyGoalInputs = rememberWeeklyGoalInputs()
+    val weeklyGoalErrors = remember { androidx.compose.runtime.mutableStateMapOf<String, SettingsInputError>() }
 
     LaunchedEffect(
         uiState.name,
@@ -96,6 +100,9 @@ internal fun SettingsContent(
         weightInput = String.format(Locale.US, "%.1f", uiState.bodyWeightKg)
         ageInput = if (uiState.ageYears > 0) uiState.ageYears.toString() else ""
         sexInput = uiState.sex
+        heightError = null
+        weightError = null
+        ageError = null
     }
 
     LaunchedEffect(uiState.weeklyGoalKmBySport) {
@@ -103,6 +110,7 @@ internal fun SettingsContent(
             weeklyGoalInputs[sport.routeValue] = FormatUtils.formatDecimalKm(
                 uiState.weeklyGoalKmBySport[sport] ?: 0.0
             )
+            weeklyGoalErrors.remove(sport.routeValue)
         }
     }
 
@@ -123,42 +131,72 @@ internal fun SettingsContent(
                 surnameInput = surnameInput,
                 onSurnameInputChange = { surnameInput = it },
                 heightInput = heightInput,
-                onHeightInputChange = { heightInput = it.filter(Char::isDigit) },
+                onHeightInputChange = {
+                    heightInput = it
+                    heightError = null
+                },
+                heightError = heightError,
                 weightInput = weightInput,
-                onWeightInputChange = { weightInput = it },
+                onWeightInputChange = {
+                    weightInput = it
+                    weightError = null
+                },
+                weightError = weightError,
                 ageInput = ageInput,
-                onAgeInputChange = { ageInput = it.filter(Char::isDigit) },
+                onAgeInputChange = {
+                    ageInput = it
+                    ageError = null
+                },
+                ageError = ageError,
                 sexInput = sexInput,
                 onSexInputChange = { sexInput = it },
                 useMetricUnits = uiState.useMetricUnits,
                 onSaveProfile = {
-                    val weightKg = weightInput.toDoubleOrNull() ?: uiState.bodyWeightKg
-                    val heightCm = heightInput.toIntOrNull() ?: 0
-                    val ageYears = ageInput.toIntOrNull() ?: 0
-                    onSaveProfile(
-                        nameInput,
-                        surnameInput,
-                        heightCm,
-                        weightKg,
-                        ageYears,
-                        sexInput,
-                    )
+                    val height = parseHeightCmInput(heightInput, uiState.heightCm)
+                    val weight = parseBodyWeightKgInput(weightInput)
+                    val age = parseAgeYearsInput(ageInput, uiState.ageYears)
+                    heightError = height.error
+                    weightError = weight.error
+                    ageError = age.error
+
+                    if (height.error == null && weight.error == null && age.error == null) {
+                        onSaveProfile(
+                            nameInput,
+                            surnameInput,
+                            checkNotNull(height.value),
+                            checkNotNull(weight.value),
+                            checkNotNull(age.value),
+                            sexInput,
+                        )
+                    }
                 },
             )
             WeeklyGoalsCard(
                 goalInputs = weeklyGoalInputs,
+                goalErrors = weeklyGoalErrors,
                 onGoalInputChange = { sport, value ->
-                    weeklyGoalInputs[sport.routeValue] = value.filterGoalInput()
+                    weeklyGoalInputs[sport.routeValue] = value
+                    weeklyGoalErrors.remove(sport.routeValue)
                 },
                 onSaveGoals = {
-                    onSaveWeeklyGoals(
-                        Sport.entries.associateWith { sport ->
-                            weeklyGoalInputs[sport.routeValue]
-                                ?.normalizedDecimalOrNull()
-                                ?: uiState.weeklyGoalKmBySport[sport]
-                                ?: 0.0
+                    val parsedGoals = mutableMapOf<Sport, Double>()
+                    weeklyGoalErrors.clear()
+
+                    Sport.entries.forEach { sport ->
+                        val result = parseWeeklyGoalKmInput(
+                            input = weeklyGoalInputs[sport.routeValue].orEmpty(),
+                            currentValue = uiState.weeklyGoalKmBySport[sport] ?: 0.0,
+                        )
+                        if (result.error != null) {
+                            weeklyGoalErrors[sport.routeValue] = result.error
+                        } else {
+                            parsedGoals[sport] = checkNotNull(result.value)
                         }
-                    )
+                    }
+
+                    if (weeklyGoalErrors.isEmpty()) {
+                        onSaveWeeklyGoals(parsedGoals)
+                    }
                 },
             )
             PreferenceControlsCard(
@@ -188,10 +226,13 @@ private fun ProfileCard(
     onSurnameInputChange: (String) -> Unit,
     heightInput: String,
     onHeightInputChange: (String) -> Unit,
+    heightError: SettingsInputError?,
     weightInput: String,
     onWeightInputChange: (String) -> Unit,
+    weightError: SettingsInputError?,
     ageInput: String,
     onAgeInputChange: (String) -> Unit,
+    ageError: SettingsInputError?,
     sexInput: Sex?,
     onSexInputChange: (Sex?) -> Unit,
     useMetricUnits: Boolean,
@@ -221,6 +262,10 @@ private fun ProfileCard(
                 value = heightInput,
                 onValueChange = onHeightInputChange,
                 label = { Text(stringResource(R.string.height_cm)) },
+                isError = heightError != null,
+                supportingText = heightError?.let { error ->
+                    { Text(stringResource(error.messageResId())) }
+                },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
@@ -229,6 +274,10 @@ private fun ProfileCard(
                 value = weightInput,
                 onValueChange = onWeightInputChange,
                 label = { Text(stringResource(R.string.weight_kg)) },
+                isError = weightError != null,
+                supportingText = weightError?.let { error ->
+                    { Text(stringResource(error.messageResId())) }
+                },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
@@ -237,6 +286,10 @@ private fun ProfileCard(
                 value = ageInput,
                 onValueChange = onAgeInputChange,
                 label = { Text(stringResource(R.string.age_years)) },
+                isError = ageError != null,
+                supportingText = ageError?.let { error ->
+                    { Text(stringResource(error.messageResId())) }
+                },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
@@ -264,6 +317,7 @@ private fun ProfileCard(
 @Composable
 private fun WeeklyGoalsCard(
     goalInputs: Map<String, String>,
+    goalErrors: Map<String, SettingsInputError>,
     onGoalInputChange: (Sport, String) -> Unit,
     onSaveGoals: () -> Unit,
 ) {
@@ -277,12 +331,18 @@ private fun WeeklyGoalsCard(
                 style = MaterialTheme.typography.titleMedium,
             )
             Sport.entries.forEach { sport ->
+                val error = goalErrors[sport.routeValue]
                 OutlinedTextField(
                     value = goalInputs[sport.routeValue].orEmpty(),
                     onValueChange = { onGoalInputChange(sport, it) },
                     label = { Text(sport.localizedName()) },
+                    isError = error != null,
                     supportingText = {
-                        Text(stringResource(R.string.goal_km_per_week))
+                        Text(
+                            stringResource(
+                                error?.messageResId() ?: R.string.goal_km_per_week
+                            )
+                        )
                     },
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                     singleLine = true,
@@ -515,10 +575,101 @@ private fun Sex.label(): String {
     }
 }
 
-private fun String.filterGoalInput(): String {
-    return filter { it.isDigit() || it == '.' || it == ',' }
+internal enum class SettingsInputError {
+    Required,
+    HeightCm,
+    WeightKg,
+    AgeYears,
+    WeeklyGoalKm,
 }
 
-private fun String.normalizedDecimalOrNull(): Double? {
-    return replace(',', '.').toDoubleOrNull()
+internal data class SettingsInputResult<T>(
+    val value: T? = null,
+    val error: SettingsInputError? = null,
+)
+
+internal fun parseHeightCmInput(
+    input: String,
+    currentValue: Int,
+): SettingsInputResult<Int> {
+    return parseOptionalWholeNumberInRange(
+        input = input,
+        currentValue = currentValue,
+        minValue = 1,
+        maxValue = 260,
+        error = SettingsInputError.HeightCm,
+    )
+}
+
+internal fun parseAgeYearsInput(
+    input: String,
+    currentValue: Int,
+): SettingsInputResult<Int> {
+    return parseOptionalWholeNumberInRange(
+        input = input,
+        currentValue = currentValue,
+        minValue = 1,
+        maxValue = 120,
+        error = SettingsInputError.AgeYears,
+    )
+}
+
+internal fun parseBodyWeightKgInput(input: String): SettingsInputResult<Double> {
+    if (input.isBlank()) {
+        return SettingsInputResult(error = SettingsInputError.Required)
+    }
+
+    val value = input.toFiniteDecimalOrNull()
+    return if (value != null && value in 20.0..300.0) {
+        SettingsInputResult(value)
+    } else {
+        SettingsInputResult(error = SettingsInputError.WeightKg)
+    }
+}
+
+internal fun parseWeeklyGoalKmInput(
+    input: String,
+    currentValue: Double,
+): SettingsInputResult<Double> {
+    if (input.isBlank()) return SettingsInputResult(currentValue)
+
+    val value = input.toFiniteDecimalOrNull()
+    return if (value != null && value >= 0.0) {
+        SettingsInputResult(value)
+    } else {
+        SettingsInputResult(error = SettingsInputError.WeeklyGoalKm)
+    }
+}
+
+private fun parseOptionalWholeNumberInRange(
+    input: String,
+    currentValue: Int,
+    minValue: Int,
+    maxValue: Int,
+    error: SettingsInputError,
+): SettingsInputResult<Int> {
+    val trimmed = input.trim()
+    if (trimmed.isEmpty()) return SettingsInputResult(currentValue)
+
+    val value = trimmed.toIntOrNull()
+    return if (value != null && value in minValue..maxValue) {
+        SettingsInputResult(value)
+    } else {
+        SettingsInputResult(error = error)
+    }
+}
+
+private fun String.toFiniteDecimalOrNull(): Double? {
+    val value = trim().replace(',', '.').toDoubleOrNull() ?: return null
+    return value.takeIf { !it.isNaN() && !it.isInfinite() }
+}
+
+private fun SettingsInputError.messageResId(): Int {
+    return when (this) {
+        SettingsInputError.Required -> R.string.settings_error_required
+        SettingsInputError.HeightCm -> R.string.settings_error_height_cm
+        SettingsInputError.WeightKg -> R.string.settings_error_weight_kg
+        SettingsInputError.AgeYears -> R.string.settings_error_age_years
+        SettingsInputError.WeeklyGoalKm -> R.string.settings_error_goal_km
+    }
 }

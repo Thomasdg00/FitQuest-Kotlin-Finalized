@@ -122,6 +122,11 @@
     <string name="height_cm">Altezza cm</string>
     <string name="weight_kg">Peso kg</string>
     <string name="age_years">Età</string>
+    <string name="settings_error_required">Campo obbligatorio</string>
+    <string name="settings_error_height_cm">Inserisci 1-260 cm</string>
+    <string name="settings_error_weight_kg">Inserisci 20-300 kg</string>
+    <string name="settings_error_age_years">Inserisci 1-120 anni</string>
+    <string name="settings_error_goal_km">Inserisci un numero &gt;= 0</string>
     <string name="sex">Sesso</string>
     <string name="sex_unspecified">Non specificato</string>
     <string name="sex_female">Femmina</string>

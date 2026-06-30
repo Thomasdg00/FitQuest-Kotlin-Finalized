@@ -122,6 +122,11 @@
     <string name="height_cm">Height cm</string>
     <string name="weight_kg">Weight kg</string>
     <string name="age_years">Age years</string>
+    <string name="settings_error_required">Required</string>
+    <string name="settings_error_height_cm">Enter 1-260 cm</string>
+    <string name="settings_error_weight_kg">Enter 20-300 kg</string>
+    <string name="settings_error_age_years">Enter 1-120 years</string>
+    <string name="settings_error_goal_km">Enter a number &gt;= 0</string>
     <string name="sex">Sex</string>
     <string name="sex_unspecified">Not specified</string>
     <string name="sex_female">Female</string>
