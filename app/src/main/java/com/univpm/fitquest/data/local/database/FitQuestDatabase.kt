@@ -18,7 +18,7 @@ import com.univpm.fitquest.data.local.entity.WorkoutEntity
         GoalEntity::class,
         UserSettingsEntity::class
     ],
-    version = 2,
+    version = 1,
     exportSchema = true
 )
 abstract class FitQuestDatabase : RoomDatabase() {

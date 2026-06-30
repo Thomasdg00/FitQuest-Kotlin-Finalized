@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "6bdfcec26915cd2dc72fdff008d020e0",
+    "identityHash": "0279c2b39935062fea0199c8b7455e0a",
     "entities": [
       {
         "tableName": "workouts",
@@ -199,85 +199,6 @@
         ]
       },
       {
-        "tableName": "weather_snapshots",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `workoutId` INTEGER NOT NULL, `recordedAtMillis` INTEGER NOT NULL, `temperatureCelsius` REAL, `relativeHumidityPercent` REAL, `windSpeedKmh` REAL, `precipitationMm` REAL, `weatherCode` INTEGER, FOREIGN KEY(`workoutId`) REFERENCES `workouts`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
-        "fields": [
-          {
-            "fieldPath": "id",
-            "columnName": "id",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "workoutId",
-            "columnName": "workoutId",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "recordedAtMillis",
-            "columnName": "recordedAtMillis",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "temperatureCelsius",
-            "columnName": "temperatureCelsius",
-            "affinity": "REAL"
-          },
-          {
-            "fieldPath": "relativeHumidityPercent",
-            "columnName": "relativeHumidityPercent",
-            "affinity": "REAL"
-          },
-          {
-            "fieldPath": "windSpeedKmh",
-            "columnName": "windSpeedKmh",
-            "affinity": "REAL"
-          },
-          {
-            "fieldPath": "precipitationMm",
-            "columnName": "precipitationMm",
-            "affinity": "REAL"
-          },
-          {
-            "fieldPath": "weatherCode",
-            "columnName": "weatherCode",
-            "affinity": "INTEGER"
-          }
-        ],
-        "primaryKey": {
-          "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
-        },
-        "indices": [
-          {
-            "name": "index_weather_snapshots_workoutId",
-            "unique": true,
-            "columnNames": [
-              "workoutId"
-            ],
-            "orders": [],
-            "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_weather_snapshots_workoutId` ON `${TABLE_NAME}` (`workoutId`)"
-          }
-        ],
-        "foreignKeys": [
-          {
-            "table": "workouts",
-            "onDelete": "CASCADE",
-            "onUpdate": "NO ACTION",
-            "columns": [
-              "workoutId"
-            ],
-            "referencedColumns": [
-              "id"
-            ]
-          }
-        ]
-      },
-      {
         "tableName": "goals",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `sport` TEXT NOT NULL, `weeklyDistanceGoalMeters` REAL NOT NULL, `updatedAtMillis` INTEGER NOT NULL)",
         "fields": [
@@ -411,7 +332,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6bdfcec26915cd2dc72fdff008d020e0')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0279c2b39935062fea0199c8b7455e0a')"
     ]
   }
 }
