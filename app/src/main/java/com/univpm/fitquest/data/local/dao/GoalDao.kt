@@ -14,12 +14,6 @@ interface GoalDao {
     @Query("SELECT * FROM goals WHERE sport = :sport")
     suspend fun getForSport(sport: String): GoalEntity?
 
-    @Query("SELECT * FROM goals WHERE sport = :sport")
-    fun observeForSport(sport: String): Flow<GoalEntity?>
-
     @Query("SELECT * FROM goals ORDER BY sport ASC")
     fun observeAll(): Flow<List<GoalEntity>>
-
-    @Query("DELETE FROM goals WHERE sport = :sport")
-    suspend fun deleteForSport(sport: String)
 }

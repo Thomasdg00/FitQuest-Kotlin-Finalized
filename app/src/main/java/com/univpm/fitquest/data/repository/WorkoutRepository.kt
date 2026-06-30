@@ -15,9 +15,6 @@ class WorkoutRepository(
 ) {
     fun observeWorkouts(): Flow<List<WorkoutEntity>> = workoutDao.observeAll()
 
-    fun observeWorkoutsBySport(sport: String): Flow<List<WorkoutEntity>> =
-        workoutDao.observeBySport(sport)
-
     fun observeWorkout(workoutId: Long): Flow<WorkoutEntity?> =
         workoutDao.observeById(workoutId)
 
@@ -27,23 +24,11 @@ class WorkoutRepository(
     fun observeWeather(workoutId: Long): Flow<WeatherSnapshotEntity?> =
         weatherSnapshotDao.observeForWorkout(workoutId)
 
-    suspend fun getWorkout(workoutId: Long): WorkoutEntity? =
-        workoutDao.getById(workoutId)
-
     suspend fun addWorkout(workout: WorkoutEntity): Long =
         workoutDao.insert(workout)
 
-    suspend fun updateWorkout(workout: WorkoutEntity) =
-        workoutDao.update(workout)
-
-    suspend fun deleteWorkout(workout: WorkoutEntity) =
-        workoutDao.delete(workout)
-
     suspend fun deleteWorkout(workoutId: Long): Boolean =
         workoutDao.deleteById(workoutId) > 0
-
-    suspend fun addRoutePoint(point: RoutePointEntity): Long =
-        routePointDao.insert(point)
 
     suspend fun addRoutePoints(points: List<RoutePointEntity>) =
         routePointDao.insertAll(points)

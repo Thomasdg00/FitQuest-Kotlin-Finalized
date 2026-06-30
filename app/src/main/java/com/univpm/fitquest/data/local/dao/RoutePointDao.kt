@@ -10,9 +10,6 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface RoutePointDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(point: RoutePointEntity): Long
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(points: List<RoutePointEntity>)
 
     @Query("SELECT * FROM route_points WHERE workoutId = :workoutId ORDER BY sequenceIndex ASC, recordedAtMillis ASC")
