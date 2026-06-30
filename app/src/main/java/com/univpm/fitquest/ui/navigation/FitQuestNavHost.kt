@@ -78,7 +78,7 @@ fun FitQuestNavHost(appContainer: AppContainer) {
                         icon = {
                             Icon(
                                 imageVector = destination.icon,
-                                contentDescription = label,
+                                contentDescription = null,
                             )
                         },
                         label = { Text(label) },
