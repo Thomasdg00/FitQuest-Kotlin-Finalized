@@ -37,7 +37,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.univpm.fitquest.R
-import com.univpm.fitquest.data.local.entity.WeatherSnapshotEntity
 import com.univpm.fitquest.data.local.entity.WorkoutEntity
 import com.univpm.fitquest.domain.model.Sport
 import com.univpm.fitquest.ui.components.formatChartKm
@@ -47,7 +46,6 @@ import com.univpm.fitquest.ui.components.formatChartPace
 import com.univpm.fitquest.ui.components.LineChartPoint
 import com.univpm.fitquest.ui.components.SimpleLineChart
 import com.univpm.fitquest.ui.resources.localizedName
-import com.univpm.fitquest.ui.resources.weatherCodeToLabelRes
 import com.univpm.fitquest.util.FormatUtils
 import com.univpm.fitquest.viewmodel.WorkoutDetailEvent
 import com.univpm.fitquest.viewmodel.WorkoutDetailViewModel
@@ -112,7 +110,6 @@ fun WorkoutDetailScreen(
                 EmptyDetailCard()
             } else {
                 WorkoutSummaryCard(workout = workout)
-                WeatherCard(weather = uiState.weatherSnapshot)
                 WorkoutRouteMap(routePoints = uiState.routePoints)
                 WorkoutLineChartCard(
                     title = stringResource(R.string.pace_over_time),
@@ -236,46 +233,6 @@ private fun DetailStat(
     }
 }
 
-@Composable
-private fun WeatherCard(weather: WeatherSnapshotEntity?) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-        ) {
-            Text(
-                text = stringResource(R.string.weather),
-                style = MaterialTheme.typography.titleMedium,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            if (weather == null) {
-                Text(
-                    text = stringResource(R.string.weather_no_snapshot),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            } else {
-                weather.temperatureCelsius?.let {
-                    Text(text = stringResource(R.string.weather_temperature, FormatUtils.formatTemperatureCelsius(it)))
-                }
-                weather.relativeHumidityPercent?.let {
-                    Text(text = stringResource(R.string.weather_humidity, FormatUtils.formatWholeNumber(it)))
-                }
-                weather.windSpeedKmh?.let {
-                    Text(text = stringResource(R.string.weather_wind, FormatUtils.formatOneDecimal(it)))
-                }
-                weather.weatherCode?.let {
-                    Text(
-                        text = stringResource(weatherCodeToLabelRes(it))
-                    )
-                }
-            }
-        }
-    }
-}
 
 @Composable
 private fun WorkoutLineChartCard(

@@ -20,10 +20,6 @@
 
     <string name="today">Oggi</string>
     <string name="weather">Meteo</string>
-    <string name="weather_ready">Meteo: pronto</string>
-    <string name="weather_waiting_gps">In attesa del GPS...</string>
-    <string name="weather_fetching">Recupero meteo...</string>
-    <string name="weather_saved">Meteo salvato</string>
     <string name="weather_unavailable">Meteo non disponibile</string>
     <string name="weather_cloudy">Nuvoloso</string>
     <string name="weather_sunny">Soleggiato</string>
@@ -32,11 +28,6 @@
     <string name="weather_rainy">Pioggia</string>
     <string name="weather_snowy">Neve</string>
     <string name="weather_stormy">Temporale</string>
-    <string name="weather_no_snapshot">Nessuno snapshot meteo salvato per questo allenamento.</string>
-    <string name="weather_temperature">Temperatura: %1$s</string>
-    <string name="weather_humidity">Umidità: %1$s%%</string>
-    <string name="weather_wind">Vento: %1$s km/h</string>
-    <string name="weather_code">Codice meteo: %1$d</string>
     <string name="weather_condition_with_code">%1$s (codice %2$d)</string>
     <string name="weather_condition_clear_sky">Cielo sereno</string>
     <string name="weather_condition_mainly_clear">Prevalentemente sereno</string>
@@ -78,7 +69,7 @@
     <string name="history_workout_summary">%1$s km | %2$d min</string>
 
     <string name="workout_detail_title">Dettaglio allenamento</string>
-    <string name="workout_detail_subtitle">Percorso, statistiche, meteo e grafici salvati.</string>
+    <string name="workout_detail_subtitle">Percorso, statistiche e grafici salvati.</string>
     <string name="back">Indietro</string>
     <string name="workout_not_found">Allenamento non trovato.</string>
     <string name="avg_speed">Velocità media</string>
@@ -97,7 +88,7 @@
     <string name="workout_delete">Elimina allenamento</string>
     <string name="workout_delete_deleting">Eliminazione...</string>
     <string name="workout_delete_confirm_title">Eliminare allenamento?</string>
-    <string name="workout_delete_confirm_body">Rimuove da questo dispositivo l\'allenamento, i punti percorso e lo snapshot meteo salvato.</string>
+    <string name="workout_delete_confirm_body">Rimuove da questo dispositivo l\'allenamento e i punti percorso.</string>
     <string name="workout_delete_confirm">Elimina</string>
     <string name="workout_delete_failed">Impossibile eliminare l\'allenamento.</string>
     <string name="cancel">Annulla</string>

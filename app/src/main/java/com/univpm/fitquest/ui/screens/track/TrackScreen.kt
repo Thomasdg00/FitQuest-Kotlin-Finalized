@@ -79,14 +79,6 @@ fun TrackScreen(
             modifier = Modifier.fillMaxSize(),
         )
 
-        if (panelState.lifecycleState != TrackingLifecycleState.Idle) {
-            WeatherStatusPill(
-                status = panelState.weatherStatus,
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(top = 24.dp),
-            )
-        }
 
         Card(
             modifier = Modifier

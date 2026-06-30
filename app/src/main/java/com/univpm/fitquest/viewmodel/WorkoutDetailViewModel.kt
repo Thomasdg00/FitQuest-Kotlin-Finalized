@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.univpm.fitquest.data.local.entity.RoutePointEntity
-import com.univpm.fitquest.data.local.entity.WeatherSnapshotEntity
 import com.univpm.fitquest.data.local.entity.WorkoutEntity
 import com.univpm.fitquest.data.repository.WorkoutRepository
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -21,7 +20,6 @@ import kotlinx.coroutines.launch
 data class WorkoutDetailUiState(
     val workout: WorkoutEntity? = null,
     val routePoints: List<RoutePointEntity> = emptyList(),
-    val weatherSnapshot: WeatherSnapshotEntity? = null,
     val routeCharts: WorkoutRouteChartsUi = WorkoutRouteChartsUi(),
     val isDeleting: Boolean = false,
 )
@@ -42,13 +40,11 @@ class WorkoutDetailViewModel(
     val uiState: StateFlow<WorkoutDetailUiState> = combine(
         workoutRepository.observeWorkout(workoutId),
         workoutRepository.observeRoutePoints(workoutId),
-        workoutRepository.observeWeather(workoutId),
         deleteState,
-    ) { workout, routePoints, weather, isDeleting ->
+    ) { workout, routePoints, isDeleting ->
         WorkoutDetailUiState(
             workout = workout,
             routePoints = routePoints,
-            weatherSnapshot = weather,
             routeCharts = buildWorkoutRouteCharts(routePoints),
             isDeleting = isDeleting,
         )

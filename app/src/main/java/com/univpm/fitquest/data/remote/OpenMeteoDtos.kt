@@ -2,16 +2,6 @@ package com.univpm.fitquest.data.remote
 
 import com.squareup.moshi.Json
 
-data class OpenMeteoCurrentResponseDto(
-    @param:Json(name = "current") val current: OpenMeteoCurrentDto?,
-)
-
-data class OpenMeteoCurrentDto(
-    @param:Json(name = "temperature_2m") val temperatureCelsius: Double?,
-    @param:Json(name = "relative_humidity_2m") val relativeHumidityPercent: Double?,
-    @param:Json(name = "wind_speed_10m") val windSpeedKmh: Double?,
-    @param:Json(name = "weather_code") val weatherCode: Int?,
-)
 
 data class OpenMeteoDailyResponseDto(
     @param:Json(name = "daily") val daily: OpenMeteoDailyDto?,

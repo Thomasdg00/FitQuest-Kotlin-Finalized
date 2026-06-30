@@ -1,20 +1,7 @@
 package com.univpm.fitquest.data.remote
 
 import com.univpm.fitquest.domain.model.DailyForecast
-import com.univpm.fitquest.domain.model.WeatherSnapshotDraft
 
-internal fun OpenMeteoCurrentResponseDto.toWeatherSnapshotDraft(
-    recordedAtMillis: Long,
-): WeatherSnapshotDraft? {
-    val currentWeather = current ?: return null
-    return WeatherSnapshotDraft(
-        recordedAtMillis = recordedAtMillis,
-        temperatureCelsius = currentWeather.temperatureCelsius,
-        relativeHumidityPercent = currentWeather.relativeHumidityPercent,
-        windSpeedKmh = currentWeather.windSpeedKmh,
-        weatherCode = currentWeather.weatherCode,
-    )
-}
 
 internal fun OpenMeteoDailyResponseDto.toDailyForecasts(): List<DailyForecast> {
     val dailyForecast = daily ?: return emptyList()

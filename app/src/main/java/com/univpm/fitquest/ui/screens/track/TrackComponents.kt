@@ -18,10 +18,6 @@ import androidx.compose.material.icons.automirrored.outlined.DirectionsWalk
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
-import androidx.compose.material.icons.outlined.Cloud
-import androidx.compose.material.icons.outlined.CloudOff
-import androidx.compose.material.icons.outlined.DeviceThermostat
-import androidx.compose.material.icons.outlined.WbSunny
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -45,7 +41,6 @@ import androidx.compose.ui.unit.dp
 import com.univpm.fitquest.R
 import com.univpm.fitquest.domain.model.Sport
 import com.univpm.fitquest.tracking.service.TrackingLifecycleState
-import com.univpm.fitquest.tracking.service.WeatherCaptureStatus
 import com.univpm.fitquest.ui.resources.localizedName
 import com.univpm.fitquest.util.FormatUtils
 import com.univpm.fitquest.viewmodel.TrackPanelUiState
@@ -365,59 +360,6 @@ internal fun TrackingControls(
     }
 }
 
-@Composable
-internal fun WeatherStatusPill(
-    status: WeatherCaptureStatus,
-    modifier: Modifier = Modifier,
-) {
-    Card(
-        shape = androidx.compose.foundation.shape.CircleShape,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.9f),
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
-        modifier = modifier,
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Icon(
-                imageVector = when (status) {
-                    WeatherCaptureStatus.Saved -> Icons.Outlined.Cloud
-                    WeatherCaptureStatus.Failed -> Icons.Outlined.CloudOff
-                    WeatherCaptureStatus.Loading -> Icons.Outlined.DeviceThermostat
-                    else -> Icons.Outlined.WbSunny
-                },
-                contentDescription = stringResource(R.string.weather),
-                tint = when (status) {
-                    WeatherCaptureStatus.Saved -> MaterialTheme.colorScheme.primary
-                    WeatherCaptureStatus.Failed -> MaterialTheme.colorScheme.error
-                    else -> MaterialTheme.colorScheme.onSurfaceVariant
-                },
-                modifier = Modifier.size(18.dp),
-            )
-            when (status) {
-                WeatherCaptureStatus.Loading,
-                WeatherCaptureStatus.Saved,
-                -> Unit
-                else -> Text(
-                    text = when (status) {
-                        WeatherCaptureStatus.NotStarted -> stringResource(R.string.weather_ready)
-                        WeatherCaptureStatus.WaitingForLocation -> stringResource(R.string.weather_waiting_gps)
-                        WeatherCaptureStatus.Failed -> stringResource(R.string.weather_unavailable)
-                        WeatherCaptureStatus.Loading,
-                        WeatherCaptureStatus.Saved,
-                        -> ""
-                    },
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-            }
-        }
-    }
-}
 
 @Composable
 private fun MetricItem(

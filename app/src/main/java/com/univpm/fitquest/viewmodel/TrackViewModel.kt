@@ -10,7 +10,6 @@ import com.univpm.fitquest.tracking.service.InMemoryRoutePoint
 import com.univpm.fitquest.tracking.service.TrackingServiceController
 import com.univpm.fitquest.tracking.service.TrackingServiceState
 import com.univpm.fitquest.tracking.service.TrackingLifecycleState
-import com.univpm.fitquest.tracking.service.WeatherCaptureStatus
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -36,7 +35,6 @@ data class TrackPanelUiState(
     val elevationGainMeters: Double = 0.0,
     val elevationLossMeters: Double = 0.0,
     val stepCounterAvailable: Boolean = false,
-    val weatherStatus: WeatherCaptureStatus = WeatherCaptureStatus.NotStarted,
     val currentLocationQuality: com.univpm.fitquest.tracking.service.LocationQuality = com.univpm.fitquest.tracking.service.LocationQuality.Unknown,
     val errorMessage: String? = null,
 )
@@ -126,7 +124,6 @@ internal fun TrackingServiceState.toPanelUiState(): TrackPanelUiState {
         elevationGainMeters = elevationGainMeters,
         elevationLossMeters = elevationLossMeters,
         stepCounterAvailable = stepCounterAvailable,
-        weatherStatus = weatherStatus,
         currentLocationQuality = currentLocationQuality,
         errorMessage = errorMessage,
     )

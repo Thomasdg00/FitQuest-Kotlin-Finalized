@@ -27,7 +27,6 @@ import com.google.android.gms.tasks.CancellationTokenSource
 import com.univpm.fitquest.FitQuestApplication
 import com.univpm.fitquest.R
 import com.univpm.fitquest.domain.model.Sport
-import com.univpm.fitquest.domain.model.WeatherSnapshotDraft
 import com.univpm.fitquest.tracking.calories.CalorieProfile
 import com.univpm.fitquest.tracking.calories.MetCalorieCalculator
 import com.univpm.fitquest.tracking.calories.Sex
@@ -58,16 +57,11 @@ class TrackingService : Service(), SensorEventListener {
     private val userSettingsRepository by lazy {
         appContainer.userSettingsRepository
     }
-    private val weatherCaptureHelper by lazy {
-        WeatherCaptureHelper(appContainer.weatherRepository)
-    }
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(serviceJob + Dispatchers.Main.immediate)
     private val routePoints = mutableListOf<InMemoryRoutePoint>()
 
     private var currentState = TrackingServiceState()
-    private var weatherSnapshotDraft: WeatherSnapshotDraft? = null
-    private var weatherRequestStarted = false
     private var sessionStartedAtMillis: Long? = null
     private var lastAcceptedLocation: Location? = null
     private var activeStartedAtElapsedRealtime: Long? = null
@@ -124,8 +118,6 @@ class TrackingService : Service(), SensorEventListener {
         }
 
         routePoints.clear()
-        weatherSnapshotDraft = null
-        weatherRequestStarted = false
         sessionStartedAtMillis = System.currentTimeMillis()
         lastAcceptedLocation = null
         accumulatedElapsedMillis = 0L
@@ -139,7 +131,6 @@ class TrackingService : Service(), SensorEventListener {
             sport = sport,
             stepCounterAvailable = stepSensor != null && hasActivityRecognitionPermission() &&
                 sport.supportsCadence(),
-            weatherStatus = WeatherCaptureStatus.WaitingForLocation,
         )
         TrackingServiceController.updateState(currentState)
         // Android requires a foreground service and ongoing notification for long-running location work.
@@ -199,7 +190,6 @@ class TrackingService : Service(), SensorEventListener {
         val cadenceStepsPerMinute = currentState.averageCadenceStepsPerMinute
         val gainMeters = currentState.elevationGainMeters
         val lossMeters = currentState.elevationLossMeters
-        val weatherSnapshot = weatherSnapshotDraft
 
         if (currentState.lifecycleState == TrackingLifecycleState.Idle ||
             currentState.lifecycleState == TrackingLifecycleState.Stopping
@@ -227,7 +217,6 @@ class TrackingService : Service(), SensorEventListener {
                 cadenceStepsPerMinute = cadenceStepsPerMinute,
                 elevationGainMeters = gainMeters,
                 elevationLossMeters = lossMeters,
-                weatherSnapshotDraft = weatherSnapshot,
             )
             if (errorMessage == null) {
                 clearSession()
@@ -265,7 +254,6 @@ class TrackingService : Service(), SensorEventListener {
         cadenceStepsPerMinute: Int?,
         elevationGainMeters: Double,
         elevationLossMeters: Double,
-        weatherSnapshotDraft: WeatherSnapshotDraft?,
     ): String? {
         if (sport == null || startedAtMillis == null) {
             return getString(R.string.tracking_error_missing_start_data)
@@ -285,7 +273,6 @@ class TrackingService : Service(), SensorEventListener {
             cadenceStepsPerMinute = cadenceStepsPerMinute,
             elevationGainMeters = elevationGainMeters,
             elevationLossMeters = elevationLossMeters,
-            weatherSnapshotDraft = weatherSnapshotDraft,
         )
 
         return runCatching {
@@ -300,8 +287,6 @@ class TrackingService : Service(), SensorEventListener {
 
     private fun clearSession() {
         routePoints.clear()
-        weatherSnapshotDraft = null
-        weatherRequestStarted = false
         sessionStartedAtMillis = null
         lastAcceptedLocation = null
         activeStartedAtElapsedRealtime = null
@@ -415,9 +400,6 @@ class TrackingService : Service(), SensorEventListener {
             speedMetersPerSecond = speed,
         )
 
-        if (!weatherRequestStarted) {
-            startWeatherFetch(location.latitude, location.longitude)
-        }
 
         val prevAlt = currentState.currentAltitudeMeters
         if (altitudeMeters != null && prevAlt != null) {
@@ -498,18 +480,6 @@ class TrackingService : Service(), SensorEventListener {
         }
     }
 
-    private fun startWeatherFetch(latitude: Double, longitude: Double) {
-        weatherRequestStarted = true
-        currentState = currentState.copy(weatherStatus = WeatherCaptureStatus.Loading)
-        publishState(updateNotification = false)
-
-        serviceScope.launch {
-            val weatherResult = weatherCaptureHelper.captureCurrentWeather(latitude, longitude)
-            weatherSnapshotDraft = weatherResult.snapshotDraft
-            currentState = currentState.copy(weatherStatus = weatherResult.status)
-            publishState(updateNotification = false)
-        }
-    }
 
     private fun startSensorUpdates() {
         lastStepCounterValue = null

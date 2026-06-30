@@ -1,34 +1,9 @@
 package com.univpm.fitquest.data.remote
 
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNull
 import org.junit.Test
 
 class OpenMeteoMappersTest {
-    @Test
-    fun mapsCurrentWeatherToSnapshotDraft() {
-        val response = OpenMeteoCurrentResponseDto(
-            current = OpenMeteoCurrentDto(
-                temperatureCelsius = 21.5,
-                relativeHumidityPercent = 64.0,
-                windSpeedKmh = 8.4,
-                weatherCode = 3,
-            ),
-        )
-
-        val draft = response.toWeatherSnapshotDraft(recordedAtMillis = 123L)
-
-        assertEquals(123L, draft?.recordedAtMillis)
-        assertEquals(21.5, draft?.temperatureCelsius ?: 0.0, 0.0)
-        assertEquals(64.0, draft?.relativeHumidityPercent ?: 0.0, 0.0)
-        assertEquals(8.4, draft?.windSpeedKmh ?: 0.0, 0.0)
-        assertEquals(3, draft?.weatherCode)
-    }
-
-    @Test
-    fun missingCurrentWeatherReturnsNullSnapshotDraft() {
-        assertNull(OpenMeteoCurrentResponseDto(current = null).toWeatherSnapshotDraft(recordedAtMillis = 123L))
-    }
 
     @Test
     fun mapsDailyForecastToAtMostThreeRows() {

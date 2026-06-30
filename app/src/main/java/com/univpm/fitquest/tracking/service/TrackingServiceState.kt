@@ -30,18 +30,10 @@ data class TrackingServiceState(
     val elevationGainMeters: Double = 0.0,
     val elevationLossMeters: Double = 0.0,
     val stepCounterAvailable: Boolean = false,
-    val weatherStatus: WeatherCaptureStatus = WeatherCaptureStatus.NotStarted,
     val currentLocationQuality: LocationQuality = LocationQuality.Unknown,
     val errorMessage: String? = null,
 )
 
-enum class WeatherCaptureStatus {
-    NotStarted,
-    WaitingForLocation,
-    Loading,
-    Saved,
-    Failed,
-}
 
 data class InMemoryRoutePoint(
     val latitude: Double,

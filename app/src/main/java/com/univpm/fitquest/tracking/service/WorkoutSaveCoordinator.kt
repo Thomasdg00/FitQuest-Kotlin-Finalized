@@ -1,9 +1,7 @@
 package com.univpm.fitquest.tracking.service
 
-import com.univpm.fitquest.data.local.entity.WeatherSnapshotEntity
 import com.univpm.fitquest.data.repository.WorkoutRepository
 import com.univpm.fitquest.domain.model.Sport
-import com.univpm.fitquest.domain.model.WeatherSnapshotDraft
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -28,9 +26,6 @@ internal class WorkoutSaveCoordinator(
             if (routeEntities.isNotEmpty()) {
                 workoutRepository.addRoutePoints(routeEntities)
             }
-            request.weatherSnapshotDraft?.let { weather ->
-                workoutRepository.saveWeather(weather.toEntity(workoutId))
-            }
         }
     }
 }
@@ -46,16 +41,4 @@ internal data class CompletedWorkoutSaveRequest(
     val cadenceStepsPerMinute: Int?,
     val elevationGainMeters: Double,
     val elevationLossMeters: Double,
-    val weatherSnapshotDraft: WeatherSnapshotDraft?,
 )
-
-private fun WeatherSnapshotDraft.toEntity(workoutId: Long): WeatherSnapshotEntity {
-    return WeatherSnapshotEntity(
-        workoutId = workoutId,
-        recordedAtMillis = recordedAtMillis,
-        temperatureCelsius = temperatureCelsius,
-        relativeHumidityPercent = relativeHumidityPercent,
-        windSpeedKmh = windSpeedKmh,
-        weatherCode = weatherCode,
-    )
-}

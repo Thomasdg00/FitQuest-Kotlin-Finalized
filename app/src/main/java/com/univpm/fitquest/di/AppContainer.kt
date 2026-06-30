@@ -32,7 +32,6 @@ class AppContainer(val context: Context) {
         WorkoutRepository(
             workoutDao = database.workoutDao(),
             routePointDao = database.routePointDao(),
-            weatherSnapshotDao = database.weatherSnapshotDao()
         )
     }
 

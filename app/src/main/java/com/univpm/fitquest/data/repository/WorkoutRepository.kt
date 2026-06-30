@@ -1,17 +1,14 @@
 package com.univpm.fitquest.data.repository
 
 import com.univpm.fitquest.data.local.dao.RoutePointDao
-import com.univpm.fitquest.data.local.dao.WeatherSnapshotDao
 import com.univpm.fitquest.data.local.dao.WorkoutDao
 import com.univpm.fitquest.data.local.entity.RoutePointEntity
-import com.univpm.fitquest.data.local.entity.WeatherSnapshotEntity
 import com.univpm.fitquest.data.local.entity.WorkoutEntity
 import kotlinx.coroutines.flow.Flow
 
 class WorkoutRepository(
     private val workoutDao: WorkoutDao,
     private val routePointDao: RoutePointDao,
-    private val weatherSnapshotDao: WeatherSnapshotDao
 ) {
     fun observeWorkouts(): Flow<List<WorkoutEntity>> = workoutDao.observeAll()
 
@@ -21,8 +18,6 @@ class WorkoutRepository(
     fun observeRoutePoints(workoutId: Long): Flow<List<RoutePointEntity>> =
         routePointDao.observeForWorkout(workoutId)
 
-    fun observeWeather(workoutId: Long): Flow<WeatherSnapshotEntity?> =
-        weatherSnapshotDao.observeForWorkout(workoutId)
 
     suspend fun addWorkout(workout: WorkoutEntity): Long =
         workoutDao.insert(workout)
@@ -33,6 +28,4 @@ class WorkoutRepository(
     suspend fun addRoutePoints(points: List<RoutePointEntity>) =
         routePointDao.insertAll(points)
 
-    suspend fun saveWeather(weatherSnapshot: WeatherSnapshotEntity) =
-        weatherSnapshotDao.upsert(weatherSnapshot)
 }

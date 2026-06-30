@@ -20,10 +20,6 @@
 
     <string name="today">Today</string>
     <string name="weather">Weather</string>
-    <string name="weather_ready">Weather: ready</string>
-    <string name="weather_waiting_gps">Waiting for GPS...</string>
-    <string name="weather_fetching">Fetching weather...</string>
-    <string name="weather_saved">Weather saved</string>
     <string name="weather_unavailable">Weather unavailable</string>
     <string name="weather_cloudy">Cloudy</string>
     <string name="weather_sunny">Sunny</string>
@@ -32,11 +28,6 @@
     <string name="weather_rainy">Rainy</string>
     <string name="weather_snowy">Snowy</string>
     <string name="weather_stormy">Stormy</string>
-    <string name="weather_no_snapshot">No weather snapshot saved for this workout.</string>
-    <string name="weather_temperature">Temperature: %1$s</string>
-    <string name="weather_humidity">Humidity: %1$s%%</string>
-    <string name="weather_wind">Wind: %1$s km/h</string>
-    <string name="weather_code">Weather code: %1$d</string>
     <string name="weather_condition_with_code">%1$s (code %2$d)</string>
     <string name="weather_condition_clear_sky">Clear sky</string>
     <string name="weather_condition_mainly_clear">Mainly clear</string>
@@ -78,7 +69,7 @@
     <string name="history_workout_summary">%1$s km | %2$d min</string>
 
     <string name="workout_detail_title">Workout detail</string>
-    <string name="workout_detail_subtitle">Saved route, stats, weather, and charts.</string>
+    <string name="workout_detail_subtitle">Saved route, stats, and charts.</string>
     <string name="back">Back</string>
     <string name="workout_not_found">Workout not found.</string>
     <string name="avg_speed">Avg speed</string>
@@ -97,7 +88,7 @@
     <string name="workout_delete">Delete workout</string>
     <string name="workout_delete_deleting">Deleting...</string>
     <string name="workout_delete_confirm_title">Delete workout?</string>
-    <string name="workout_delete_confirm_body">This removes the workout, route points, and saved weather snapshot from this device.</string>
+    <string name="workout_delete_confirm_body">This removes the workout and route points from this device.</string>
     <string name="workout_delete_confirm">Delete</string>
     <string name="workout_delete_failed">Workout could not be deleted.</string>
     <string name="cancel">Cancel</string>
