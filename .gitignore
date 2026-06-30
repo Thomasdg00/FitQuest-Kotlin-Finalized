@@ -7,14 +7,23 @@
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+.idea/appInsightsSettings.xml
+.idea/deploymentTargetSelector.xml
+.idea/deviceManager.xml
+.idea/planningMode.xml
+.idea/studiobot.xml
 .DS_Store
 /build
 /captures
 .externalNativeBuild
 .cxx
+.kotlin/
 local.properties
 
 secrets.properties
+material-theme.json
+skills-lock.json
+.tmp-skills/
 
 # AI Local Tools
 plugins/
