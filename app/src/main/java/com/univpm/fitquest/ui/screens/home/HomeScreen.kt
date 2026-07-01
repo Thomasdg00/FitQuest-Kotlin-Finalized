@@ -58,6 +58,7 @@ import com.univpm.fitquest.ui.screens.history.WorkoutRouteMap
 import com.univpm.fitquest.util.FormatUtils
 import com.univpm.fitquest.viewmodel.HomeUiState
 import com.univpm.fitquest.viewmodel.HomeViewModel
+import com.univpm.fitquest.viewmodel.HomeWeatherForecastState
 
 @Composable
 fun HomeScreen(
@@ -110,7 +111,7 @@ internal fun HomeContent(
         }
 
         WeatherWidget(
-            forecast = uiState.weatherForecast,
+            weatherState = uiState.weatherState,
             locationName = uiState.locationName,
         )
 
@@ -200,7 +201,7 @@ private fun HomeQuickActionCard(
 
 @Composable
 private fun WeatherWidget(
-    forecast: List<DailyForecast>,
+    weatherState: HomeWeatherForecastState,
     locationName: String?,
     modifier: Modifier = Modifier,
 ) {
@@ -208,6 +209,10 @@ private fun WeatherWidget(
         MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f),
         MaterialTheme.colorScheme.surface,
     )
+    val forecast = when (weatherState) {
+        is HomeWeatherForecastState.Available -> weatherState.forecasts
+        else -> emptyList()
+    }
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -241,23 +246,31 @@ private fun WeatherWidget(
                     )
                 }
 
-                if (forecast.isEmpty()) {
-                    Text(
-                        text = stringResource(R.string.weather_unavailable),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f),
-                    )
-                } else {
-                    forecast.take(3).forEachIndexed { index, day ->
-                        WeatherForecastRow(
-                            label = stringResource(forecastDayLabelRes(index)),
-                            forecast = day,
-                        )
+                when (weatherState) {
+                    HomeWeatherForecastState.Loading -> WeatherStatusMessage(R.string.weather_loading)
+                    is HomeWeatherForecastState.Available -> {
+                        weatherState.forecasts.take(3).forEachIndexed { index, day ->
+                            WeatherForecastRow(
+                                label = stringResource(forecastDayLabelRes(index)),
+                                forecast = day,
+                            )
+                        }
                     }
+                    HomeWeatherForecastState.Empty -> WeatherStatusMessage(R.string.weather_empty)
+                    HomeWeatherForecastState.Error -> WeatherStatusMessage(R.string.weather_unavailable)
                 }
             }
         }
     }
+}
+
+@Composable
+private fun WeatherStatusMessage(messageRes: Int) {
+    Text(
+        text = stringResource(messageRes),
+        style = MaterialTheme.typography.bodyMedium,
+        color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.78f),
+    )
 }
 
 @Composable

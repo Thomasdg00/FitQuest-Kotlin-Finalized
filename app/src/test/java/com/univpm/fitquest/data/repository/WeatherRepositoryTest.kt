@@ -3,6 +3,7 @@ package com.univpm.fitquest.data.repository
 import com.univpm.fitquest.data.remote.OpenMeteoApi
 import com.univpm.fitquest.data.remote.OpenMeteoDailyDto
 import com.univpm.fitquest.data.remote.OpenMeteoDailyResponseDto
+import com.univpm.fitquest.domain.model.WeatherForecastResult
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -10,12 +11,21 @@ import org.junit.Test
 class WeatherRepositoryTest {
 
     @Test
-    fun fetchDailyForecastReturnsEmptyListOnFailure() = runBlocking {
+    fun fetchDailyForecastReturnsErrorOnFailure() = runBlocking {
         val repository = WeatherRepository(api = FakeOpenMeteoApi(dailyFailure = true))
 
-        val forecast = repository.fetchDailyForecast(latitude = 43.0, longitude = 13.0)
+        val result = repository.fetchDailyForecast(latitude = 43.0, longitude = 13.0)
 
-        assertEquals(emptyList<Any>(), forecast)
+        assertEquals(WeatherForecastResult.Error, result)
+    }
+
+    @Test
+    fun fetchDailyForecastReturnsEmptyWhenResponseHasNoForecasts() = runBlocking {
+        val repository = WeatherRepository(api = FakeOpenMeteoApi())
+
+        val result = repository.fetchDailyForecast(latitude = 43.0, longitude = 13.0)
+
+        assertEquals(WeatherForecastResult.Empty, result)
     }
 
     @Test
@@ -33,7 +43,8 @@ class WeatherRepositoryTest {
             ),
         )
 
-        val forecast = repository.fetchDailyForecast(latitude = 43.0, longitude = 13.0)
+        val result = repository.fetchDailyForecast(latitude = 43.0, longitude = 13.0)
+        val forecast = (result as WeatherForecastResult.Success).forecasts
 
         assertEquals(1, forecast.size)
         assertEquals("2026-06-10", forecast[0].date)

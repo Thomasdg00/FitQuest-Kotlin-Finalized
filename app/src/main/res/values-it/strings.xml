@@ -20,7 +20,9 @@
 
     <string name="today">Oggi</string>
     <string name="weather">Meteo</string>
-    <string name="weather_unavailable">Meteo non disponibile</string>
+    <string name="weather_loading">Caricamento meteo...</string>
+    <string name="weather_empty">Nessuna previsione disponibile.</string>
+    <string name="weather_unavailable">Meteo non disponibile. Riprova più tardi.</string>
     <string name="weather_cloudy">Nuvoloso</string>
     <string name="weather_sunny">Soleggiato</string>
     <string name="weather_partly_cloudy">Parzialmente nuvoloso</string>

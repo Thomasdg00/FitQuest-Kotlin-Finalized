@@ -20,7 +20,9 @@
 
     <string name="today">Today</string>
     <string name="weather">Weather</string>
-    <string name="weather_unavailable">Weather unavailable</string>
+    <string name="weather_loading">Loading weather...</string>
+    <string name="weather_empty">No forecast available.</string>
+    <string name="weather_unavailable">Weather unavailable. Try again later.</string>
     <string name="weather_cloudy">Cloudy</string>
     <string name="weather_sunny">Sunny</string>
     <string name="weather_partly_cloudy">Partly Cloudy</string>

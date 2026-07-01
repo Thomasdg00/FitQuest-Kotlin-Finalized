@@ -1,8 +1,13 @@
 package com.univpm.fitquest.viewmodel
 
+import android.annotation.SuppressLint
+import android.content.Context
+import android.location.Geocoder
+import android.location.Location
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.google.android.gms.location.FusedLocationProviderClient
 import com.univpm.fitquest.data.local.entity.RoutePointEntity
 import com.univpm.fitquest.data.local.entity.WorkoutEntity
 import com.univpm.fitquest.data.repository.GoalRepository
@@ -10,11 +15,7 @@ import com.univpm.fitquest.data.repository.WeatherRepository
 import com.univpm.fitquest.data.repository.WorkoutRepository
 import com.univpm.fitquest.domain.model.DailyForecast
 import com.univpm.fitquest.domain.model.Sport
-import com.google.android.gms.location.FusedLocationProviderClient
-import android.annotation.SuppressLint
-import android.content.Context
-import android.location.Geocoder
-import android.location.Location
+import com.univpm.fitquest.domain.model.WeatherForecastResult
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.awaitClose
@@ -23,14 +24,26 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+
+sealed interface HomeWeatherForecastState {
+    data object Loading : HomeWeatherForecastState
+    data class Available(val forecasts: List<DailyForecast>) : HomeWeatherForecastState
+    data object Empty : HomeWeatherForecastState
+    data object Error : HomeWeatherForecastState
+}
+
+internal fun weatherStateFromResult(result: WeatherForecastResult): HomeWeatherForecastState = when (result) {
+    is WeatherForecastResult.Success -> HomeWeatherForecastState.Available(result.forecasts)
+    WeatherForecastResult.Empty -> HomeWeatherForecastState.Empty
+    WeatherForecastResult.Error -> HomeWeatherForecastState.Error
+}
 
 data class HomeUiState(
-    val weatherForecast: List<DailyForecast> = emptyList(),
+    val weatherState: HomeWeatherForecastState = HomeWeatherForecastState.Loading,
     val locationName: String? = null,
     val lastWorkout: WorkoutEntity? = null,
     val lastWorkoutRoutePoints: List<RoutePointEntity> = emptyList(),
@@ -62,7 +75,7 @@ class HomeViewModel(
                     forecastFlow,
                     goalRepository.observeGoals(),
                 ) { forecastData, goals ->
-                    val forecast = forecastData.first
+                    val weatherState = forecastData.first
                     val locationName = forecastData.second
                     val weeklyProgressMeters = weeklyDistanceMetersBySport(workouts)
 
@@ -76,7 +89,7 @@ class HomeViewModel(
                     }
 
                     HomeUiState(
-                        weatherForecast = forecast,
+                        weatherState = weatherState,
                         locationName = locationName,
                         lastWorkout = latestWorkout,
                         lastWorkoutRoutePoints = routePoints,
@@ -92,29 +105,29 @@ class HomeViewModel(
         )
 
     @SuppressLint("MissingPermission")
-    private fun forecastForCurrentLocation(): Flow<Pair<List<DailyForecast>, String?>> = callbackFlow {
+    private fun forecastForCurrentLocation(): Flow<Pair<HomeWeatherForecastState, String?>> = callbackFlow {
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location: Location? ->
                 if (location != null) {
                     launch(Dispatchers.IO) {
-                        val forecast = runCatching {
+                        val result = runCatching {
                             weatherRepository.fetchDailyForecast(location.latitude, location.longitude)
-                        }.getOrDefault(emptyList())
+                        }.getOrDefault(WeatherForecastResult.Error)
                         val locName = runCatching {
                             val address = Geocoder(context, java.util.Locale.getDefault())
                                 .getFromLocation(location.latitude, location.longitude, 1)?.firstOrNull()
                             address?.locality ?: address?.subAdminArea ?: address?.adminArea
                         }.getOrNull()
-                        trySend(Pair(forecast, locName))
+                        trySend(Pair(weatherStateFromResult(result), locName))
                         close()
                     }
                 } else {
-                    trySend(Pair(emptyList(), null))
+                    trySend(Pair(HomeWeatherForecastState.Error, null))
                     close()
                 }
             }
             .addOnFailureListener {
-                trySend(Pair(emptyList(), null))
+                trySend(Pair(HomeWeatherForecastState.Error, null))
                 close()
             }
         awaitClose { }

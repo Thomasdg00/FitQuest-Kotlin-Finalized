@@ -5,7 +5,7 @@ import com.univpm.fitquest.data.remote.OPEN_METEO_FORECAST_DAYS
 import com.univpm.fitquest.data.remote.OPEN_METEO_TIMEZONE
 import com.univpm.fitquest.data.remote.OpenMeteoApi
 import com.univpm.fitquest.data.remote.toDailyForecasts
-import com.univpm.fitquest.domain.model.DailyForecast
+import com.univpm.fitquest.domain.model.WeatherForecastResult
 
 class WeatherRepository(
     private val api: OpenMeteoApi,
@@ -14,7 +14,7 @@ class WeatherRepository(
     suspend fun fetchDailyForecast(
         latitude: Double,
         longitude: Double,
-    ): List<DailyForecast> {
+    ): WeatherForecastResult {
         return runCatching {
             api.dailyForecast(
                 latitude = latitude,
@@ -23,6 +23,15 @@ class WeatherRepository(
                 forecastDays = OPEN_METEO_FORECAST_DAYS,
                 timezone = OPEN_METEO_TIMEZONE,
             ).toDailyForecasts()
-        }.getOrDefault(emptyList())
+        }.fold(
+            onSuccess = { forecasts ->
+                if (forecasts.isEmpty()) {
+                    WeatherForecastResult.Empty
+                } else {
+                    WeatherForecastResult.Success(forecasts)
+                }
+            },
+            onFailure = { WeatherForecastResult.Error },
+        )
     }
 }
