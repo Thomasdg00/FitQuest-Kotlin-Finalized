@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.univpm.fitquest.data.local.entity.GoalEntity
 import com.univpm.fitquest.data.local.entity.RoutePointEntity
 import com.univpm.fitquest.data.local.entity.WorkoutEntity
 import com.univpm.fitquest.data.repository.GoalRepository
@@ -51,6 +52,35 @@ data class HomeUiState(
     val weeklyGoals: Map<Sport, Double> = Sport.entries.associateWith { 0.0 },
 )
 
+private fun buildHomeUiState(
+    workouts: List<WorkoutEntity>,
+    latestWorkout: WorkoutEntity?,
+    routePoints: List<RoutePointEntity>,
+    weatherState: HomeWeatherForecastState,
+    locationName: String?,
+    goals: List<GoalEntity>,
+): HomeUiState {
+    val weeklyProgressMeters = weeklyDistanceMetersBySport(workouts)
+
+    val weeklyDistances = Sport.entries.associateWith { sport ->
+        metersToKm(weeklyProgressMeters.getValue(sport))
+    }
+
+    val weeklyGoals = Sport.entries.associateWith { sport ->
+        val goal = goals.firstOrNull { it.sport == sport.routeValue }
+        metersToKm(goal?.weeklyDistanceGoalMeters ?: defaultWeeklyGoalMeters(sport))
+    }
+
+    return HomeUiState(
+        weatherState = weatherState,
+        locationName = locationName,
+        lastWorkout = latestWorkout,
+        lastWorkoutRoutePoints = routePoints,
+        weeklyDistances = weeklyDistances,
+        weeklyGoals = weeklyGoals,
+    )
+}
+
 class HomeViewModel(
     private val workoutRepository: WorkoutRepository,
     private val goalRepository: GoalRepository,
@@ -75,26 +105,13 @@ class HomeViewModel(
                     forecastFlow,
                     goalRepository.observeGoals(),
                 ) { forecastData, goals ->
-                    val weatherState = forecastData.first
-                    val locationName = forecastData.second
-                    val weeklyProgressMeters = weeklyDistanceMetersBySport(workouts)
-
-                    val weeklyDistances = Sport.entries.associateWith { sport ->
-                        metersToKm(weeklyProgressMeters.getValue(sport))
-                    }
-
-                    val weeklyGoals = Sport.entries.associateWith { sport ->
-                        val goal = goals.firstOrNull { it.sport == sport.routeValue }
-                        metersToKm(goal?.weeklyDistanceGoalMeters ?: defaultWeeklyGoalMeters(sport))
-                    }
-
-                    HomeUiState(
-                        weatherState = weatherState,
-                        locationName = locationName,
-                        lastWorkout = latestWorkout,
-                        lastWorkoutRoutePoints = routePoints,
-                        weeklyDistances = weeklyDistances,
-                        weeklyGoals = weeklyGoals,
+                    buildHomeUiState(
+                        workouts = workouts,
+                        latestWorkout = latestWorkout,
+                        routePoints = routePoints,
+                        weatherState = forecastData.first,
+                        locationName = forecastData.second,
+                        goals = goals,
                     )
                 }
             }
